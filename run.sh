@@ -1,0 +1,1 @@
+gcc -O3 -o vesuv main.cpp -lvulkan -lglfw -lstdc++ && ./vesuv
