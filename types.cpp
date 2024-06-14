@@ -36,6 +36,13 @@ struct SwapChain
     std::vector<VkFramebuffer> framebuffers;
 };
 
+struct UniformBufferObject
+{
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+
 struct Vertex
 {
     glm::vec2 pos;
@@ -94,5 +101,18 @@ struct Texture
 {
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
+};
+
+struct SyncObjects
+{
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkFence> inFlightFences;
+};
+
+struct Window
+{
+    GLFWwindow *window;
+    VkSurfaceKHR surface;
 };
 #endif

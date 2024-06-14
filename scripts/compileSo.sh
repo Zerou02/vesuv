@@ -1,1 +1,1 @@
-gcc -shared -o libhello.so -fPIC hello.c
+ccache gcc -shared -o libhello.so -fPIC hello.c

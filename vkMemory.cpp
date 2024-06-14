@@ -1,4 +1,5 @@
 #include "common.cpp"
+#include "commands.h"
 
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice physicalDevice)
 {
@@ -47,4 +48,15 @@ Buffer createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropert
     // offset must be div by alignment
     vkBindBufferMemory(logicalDevice, vkBuffer, memory, 0);
     return buffer;
+}
+
+void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDevice logicalDevice, VkCommandPool commandPool, VkQueues queues)
+{
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands(logicalDevice, commandPool);
+
+    VkBufferCopy copyRegion{};
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    endSingleTimeCommands(commandBuffer, queues, logicalDevice, commandPool);
 }

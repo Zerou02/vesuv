@@ -142,3 +142,32 @@ void createFramebuffers(SwapChain &swapchain, VkRenderPass renderPass, VkDevice 
         }
     }
 }
+
+void cleanupSwapChain(SwapChain &swapChain, VkDevice logicalDevice)
+{
+    for (size_t i = 0; i < swapChain.framebuffers.size(); i++)
+    {
+        vkDestroyFramebuffer(logicalDevice, swapChain.framebuffers[i], nullptr);
+    }
+    for (size_t i = 0; i < swapChain.imageViews.size(); i++)
+    {
+        vkDestroyImageView(logicalDevice, swapChain.imageViews[i], nullptr);
+    }
+    vkDestroySwapchainKHR(logicalDevice, swapChain.swapchain, nullptr);
+}
+void recreateSwapChain(GLFWwindow *window, VkDevice logicalDevice, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, SwapChain &swapChain, VkRenderPass renderPass)
+{
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(window, &width, &height);
+    while (width == 0 || height == 0)
+    {
+        glfwGetFramebufferSize(window, &width, &height);
+        glfwWaitEvents();
+    }
+
+    vkDeviceWaitIdle(logicalDevice);
+    cleanupSwapChain(swapChain, logicalDevice);
+
+    createSwapChain(physicalDevice, logicalDevice, surface, window);
+    createFramebuffers(swapChain, renderPass, logicalDevice);
+}
