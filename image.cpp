@@ -133,10 +133,11 @@ void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t 
     endSingleTimeCommands(commandBuffer, queues, logicalDevice, commandPool);
 }
 
-Texture createTextureImage(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueues queues)
+Texture createTextureImage(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueues queues, std::string name)
 {
     int texWidth, texHeight, texChannels;
-    stbi_uc *pixels = stbi_load("textures/statue.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    std::string path = "textures/" + name + ".png";
+    stbi_uc *pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels)

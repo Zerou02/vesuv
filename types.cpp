@@ -62,6 +62,7 @@ struct Texture
 {
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
+    VkImageView imageView;
 };
 
 struct SyncObjects

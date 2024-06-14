@@ -28,7 +28,6 @@ public:
     std::vector<VkDescriptorSet> descriptorSets;
     Texture texture;
 
-    VkImageView textureImageView;
     VkSampler textureSampler;
 
     /*
@@ -83,7 +82,7 @@ public:
     {
         vesuv.cleanup();
         vkDestroySampler(vesuv.logicalDevice, textureSampler, nullptr);
-        vkDestroyImageView(vesuv.logicalDevice, textureImageView, nullptr);
+        vkDestroyImageView(vesuv.logicalDevice, texture.imageView, nullptr);
         vkDestroyImage(vesuv.logicalDevice, texture.textureImage, nullptr);
         vkFreeMemory(vesuv.logicalDevice, texture.textureImageMemory, nullptr);
         vkDestroyPipeline(vesuv.logicalDevice, graphicsPipeline.pipeline, nullptr);
@@ -244,17 +243,15 @@ public:
     {
         this->vesuv = Vesuv();
 
-        // this->descriptorSetLayout = createDescriptorSetLayout(vesuv.logicalDevice);
         this->descriptorSetLayout = vesuv.createUniformLayouts(std::vector<VkDescriptorType>{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER}, 1);
-        this->graphicsPipeline = createGraphicsPipeline("tri", vesuv.logicalDevice, vesuv.swapChain, descriptorSetLayout, vesuv.renderPass);
-        this->texture = createTextureImage(vesuv.logicalDevice, vesuv.physicalDevice, vesuv.commandPool, vesuv.queues);
-        this->textureImageView = createTextureImageView(texture, vesuv.logicalDevice);
+        this->graphicsPipeline = vesuv.createGraphicPipeline(descriptorSetLayout, "tri");
+        this->texture = vesuv.createTexture("statue");
         this->textureSampler = createTextureSampler(vesuv.physicalDevice, vesuv.logicalDevice);
         this->vertexBuffer = createVBO(vertices);
         this->VBO2 = createVBO(triVertices);
         this->indexBuffer = createIndexBuffer();
         this->uniformBuffers = createUniformBuffers(MAX_FRAMES_IN_FLIGHT);
-        this->descriptorSets = createDescriptorSets(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout, vesuv.descriptorPool, vesuv.logicalDevice, textureImageView, uniformBuffers, textureSampler);
+        this->descriptorSets = createDescriptorSets(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout, vesuv.descriptorPool, vesuv.logicalDevice, texture.imageView, uniformBuffers, textureSampler);
         this->commandBuffers = createCommandBuffers(MAX_FRAMES_IN_FLIGHT, vesuv.commandPool, vesuv.logicalDevice);
 
         auto last = glfwGetTime();

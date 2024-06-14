@@ -6,6 +6,7 @@
 #include "graphicsPipeline.h"
 #include "commands.h"
 #include "vesuv.h"
+#include "image.h"
 
 Vesuv::Vesuv()
     : physicalDevice{},
@@ -59,6 +60,19 @@ void Vesuv::cleanup()
 VkDescriptorSetLayout Vesuv::createUniformLayouts(std::vector<VkDescriptorType> types, int amountInVertexShader)
 {
     return createDescriptorSetLayout(logicalDevice, types, amountInVertexShader);
+}
+
+GraphicsPipeline Vesuv::createGraphicPipeline(VkDescriptorSetLayout layout, std::string shaderName)
+{
+    return createGraphicsPipeline(shaderName, logicalDevice, swapChain, layout, renderPass);
+}
+
+Texture Vesuv::createTexture(std::string name)
+{
+    Texture texture;
+    texture = createTextureImage(logicalDevice, physicalDevice, commandPool, queues, name);
+    texture.imageView = createTextureImageView(texture, logicalDevice);
+    return texture;
 }
 
 //{

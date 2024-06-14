@@ -22,5 +22,7 @@ public:
     Vesuv();
     void cleanup();
     VkDescriptorSetLayout createUniformLayouts(std::vector<VkDescriptorType> types, int amountInVertexShader);
+    GraphicsPipeline createGraphicPipeline(VkDescriptorSetLayout layout, std::string shaderName);
+    Texture createTexture(std::string name);
 };
 #endif
