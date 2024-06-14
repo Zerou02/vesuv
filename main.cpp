@@ -8,6 +8,7 @@
 #include "commands.h"
 #include "vkMemory.h"
 #include "vesuv.h"
+#include "vertex.h"
 
 class Main
 {
@@ -243,7 +244,8 @@ public:
     {
         this->vesuv = Vesuv();
 
-        this->descriptorSetLayout = createDescriptorSetLayout(vesuv.logicalDevice);
+        // this->descriptorSetLayout = createDescriptorSetLayout(vesuv.logicalDevice);
+        this->descriptorSetLayout = vesuv.createUniformLayouts(std::vector<VkDescriptorType>{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER}, 1);
         this->graphicsPipeline = createGraphicsPipeline("tri", vesuv.logicalDevice, vesuv.swapChain, descriptorSetLayout, vesuv.renderPass);
         this->texture = createTextureImage(vesuv.logicalDevice, vesuv.physicalDevice, vesuv.commandPool, vesuv.queues);
         this->textureImageView = createTextureImageView(texture, vesuv.logicalDevice);

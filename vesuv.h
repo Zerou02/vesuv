@@ -21,5 +21,6 @@ public:
 
     Vesuv();
     void cleanup();
+    VkDescriptorSetLayout createUniformLayouts(std::vector<VkDescriptorType> types, int amountInVertexShader);
 };
 #endif

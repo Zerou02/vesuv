@@ -56,6 +56,11 @@ void Vesuv::cleanup()
     glfwDestroyWindow(window.window);
 }
 
+VkDescriptorSetLayout Vesuv::createUniformLayouts(std::vector<VkDescriptorType> types, int amountInVertexShader)
+{
+    return createDescriptorSetLayout(logicalDevice, types, amountInVertexShader);
+}
+
 //{
 /* public:
     VkPhysicalDevice physicalDevice;
