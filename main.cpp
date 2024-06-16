@@ -15,17 +15,14 @@ class Main
 public:
     Vesuv vesuv;
     GraphicsPipeline graphicsPipeline;
-    std::vector<VkCommandBuffer> commandBuffers;
     const int MAX_FRAMES_IN_FLIGHT = 2;
     uint32_t currentFrame = 0;
     Buffer vertexBuffer;
     Buffer quadBuffer;
     Buffer indexBuffer;
     Buffer VBO2;
-    VkDescriptorSetLayout descriptorSetLayout;
+    Uniforms uniforms;
     bool framebufferResized = false;
-    std::vector<Buffer> uniformBuffers;
-    std::vector<VkDescriptorSet> descriptorSets;
     Texture texture;
 
     VkSampler textureSampler;
@@ -91,10 +88,10 @@ public:
         vkDestroyShaderModule(vesuv.logicalDevice, graphicsPipeline.vertShader, nullptr);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            vkDestroyBuffer(vesuv.logicalDevice, uniformBuffers[i].buffer, nullptr);
-            vkFreeMemory(vesuv.logicalDevice, uniformBuffers[i].bufferMemory, nullptr);
+            vkDestroyBuffer(vesuv.logicalDevice, uniforms.uniformBuffers[i].buffer, nullptr);
+            vkFreeMemory(vesuv.logicalDevice, uniforms.uniformBuffers[i].bufferMemory, nullptr);
         }
-        vkDestroyDescriptorSetLayout(vesuv.logicalDevice, descriptorSetLayout, nullptr);
+        vkDestroyDescriptorSetLayout(vesuv.logicalDevice, uniforms.descriptorSetLayout, nullptr);
         vkDestroyBuffer(vesuv.logicalDevice, quadBuffer.buffer, nullptr);
         vkFreeMemory(vesuv.logicalDevice, quadBuffer.bufferMemory, nullptr);
         vkDestroyBuffer(vesuv.logicalDevice, vertexBuffer.buffer, nullptr);
@@ -120,7 +117,7 @@ public:
         // ubo.proj = glm::ortho(0, 800, 600, 0);
         //  ubo.proj = glm::perspective(glm::radians(45.0f), swapChain.extent.width / (float)swapChain.extent.height, 0.1f, 10.0f);
         ubo.proj[1][1] *= -1; // openGL hat anderes Koordinatensystem
-        memcpy(uniformBuffers[currentImage].memMap, &ubo, sizeof(ubo));
+        memcpy(uniforms.uniformBuffers[currentImage].memMap, &ubo, sizeof(ubo));
     }
 
     void drawFrame()
@@ -140,8 +137,8 @@ public:
         }
         vkResetFences(vesuv.logicalDevice, 1, &vesuv.syncObjects.inFlightFences[currentFrame]);
 
-        vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-        recordCommandBuffer(commandBuffers[currentFrame], imageIndex, graphicsPipeline, vesuv.swapChain, vesuv.renderPass, vertexBuffer, indexBuffer, descriptorSets, quadIndices, currentFrame, VBO2);
+        vkResetCommandBuffer(vesuv.commandBuffers[currentFrame], 0);
+        recordCommandBuffer(vesuv.commandBuffers[currentFrame], imageIndex, graphicsPipeline, vesuv.swapChain, vesuv.renderPass, vertexBuffer, indexBuffer, uniforms.descriptorSets, quadIndices, currentFrame, VBO2);
         updateUniformBuffer(currentFrame);
 
         VkSubmitInfo submitInfo{};
@@ -153,7 +150,7 @@ public:
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
+        submitInfo.pCommandBuffers = &vesuv.commandBuffers[currentFrame];
 
         VkSemaphore signalSemaphores[] = {vesuv.syncObjects.renderFinishedSemaphores[currentFrame]};
         submitInfo.signalSemaphoreCount = 1;
@@ -225,34 +222,18 @@ public:
         return indexBuffer;
     }
 
-    std::vector<Buffer> createUniformBuffers(int amount)
-    {
-        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-        std::vector<Buffer> uniformBuffers(amount);
-
-        for (size_t i = 0; i < amount; i++)
-        {
-            uniformBuffers[i] = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vesuv.logicalDevice, vesuv.physicalDevice);
-            vkMapMemory(vesuv.logicalDevice, uniformBuffers[i].bufferMemory, 0, bufferSize, 0, &uniformBuffers[i].memMap);
-        }
-        return uniformBuffers;
-    }
-
     Main()
     {
         this->vesuv = Vesuv();
 
-        this->descriptorSetLayout = vesuv.createUniformLayouts(std::vector<VkDescriptorType>{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER}, 1);
-        this->graphicsPipeline = vesuv.createGraphicPipeline(descriptorSetLayout, "tri");
         this->texture = vesuv.createTexture("statue");
         this->textureSampler = createTextureSampler(vesuv.physicalDevice, vesuv.logicalDevice);
+
+        this->uniforms = vesuv.createUniforms(std::vector<VkDescriptorType>{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER}, 1, texture, textureSampler);
+        this->graphicsPipeline = vesuv.createGraphicPipeline(uniforms.descriptorSetLayout, "tri");
         this->vertexBuffer = createVBO(vertices);
         this->VBO2 = createVBO(triVertices);
         this->indexBuffer = createIndexBuffer();
-        this->uniformBuffers = createUniformBuffers(MAX_FRAMES_IN_FLIGHT);
-        this->descriptorSets = createDescriptorSets(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout, vesuv.descriptorPool, vesuv.logicalDevice, texture.imageView, uniformBuffers, textureSampler);
-        this->commandBuffers = createCommandBuffers(MAX_FRAMES_IN_FLIGHT, vesuv.commandPool, vesuv.logicalDevice);
 
         auto last = glfwGetTime();
         double elapsed = 0;

@@ -72,6 +72,13 @@ struct SyncObjects
     std::vector<VkFence> inFlightFences;
 };
 
+struct Uniforms
+{
+    VkDescriptorSetLayout descriptorSetLayout;
+    std::vector<Buffer> uniformBuffers;
+    std::vector<VkDescriptorSet> descriptorSets;
+};
+
 struct Window
 {
     GLFWwindow *window;

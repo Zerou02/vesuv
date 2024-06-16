@@ -17,6 +17,7 @@ public:
     SyncObjects syncObjects;
     VkCommandPool commandPool;
     VkDescriptorPool descriptorPool;
+    std::vector<VkCommandBuffer> commandBuffers;
     int MAX_FRAMES_IN_FLIGHT = 2;
 
     Vesuv();
@@ -24,5 +25,7 @@ public:
     VkDescriptorSetLayout createUniformLayouts(std::vector<VkDescriptorType> types, int amountInVertexShader);
     GraphicsPipeline createGraphicPipeline(VkDescriptorSetLayout layout, std::string shaderName);
     Texture createTexture(std::string name);
+    Uniforms createUniforms(std::vector<VkDescriptorType> types, int amountInVertexShader, Texture texture, VkSampler sampler);
+    std::vector<Buffer> createUniformBuffers(int amount);
 };
 #endif

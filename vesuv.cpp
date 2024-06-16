@@ -7,6 +7,7 @@
 #include "commands.h"
 #include "vesuv.h"
 #include "image.h"
+#include "vkMemory.h"
 
 Vesuv::Vesuv()
     : physicalDevice{},
@@ -36,6 +37,7 @@ Vesuv::Vesuv()
     this->commandPool = createCommandPool(queueIndices, logicalDevice);
     this->descriptorPool = createDescriptorPool(MAX_FRAMES_IN_FLIGHT, logicalDevice);
     this->syncObjects = createSyncObjects(MAX_FRAMES_IN_FLIGHT, logicalDevice);
+    this->commandBuffers = createCommandBuffers(MAX_FRAMES_IN_FLIGHT, commandPool, logicalDevice);
 };
 
 void Vesuv::cleanup()
@@ -73,6 +75,29 @@ Texture Vesuv::createTexture(std::string name)
     texture = createTextureImage(logicalDevice, physicalDevice, commandPool, queues, name);
     texture.imageView = createTextureImageView(texture, logicalDevice);
     return texture;
+}
+
+std::vector<Buffer> Vesuv::createUniformBuffers(int amount)
+{
+    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+    std::vector<Buffer> uniformBuffers(amount);
+
+    for (size_t i = 0; i < amount; i++)
+    {
+        uniformBuffers[i] = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, logicalDevice, physicalDevice);
+        vkMapMemory(logicalDevice, uniformBuffers[i].bufferMemory, 0, bufferSize, 0, &uniformBuffers[i].memMap);
+    }
+    return uniformBuffers;
+}
+
+Uniforms Vesuv::createUniforms(std::vector<VkDescriptorType> types, int amountInVertexShader, Texture texture, VkSampler sampler)
+{
+    Uniforms uniforms;
+    uniforms.descriptorSetLayout = createUniformLayouts(types, amountInVertexShader);
+    uniforms.uniformBuffers = createUniformBuffers(MAX_FRAMES_IN_FLIGHT);
+    uniforms.descriptorSets = createDescriptorSets(MAX_FRAMES_IN_FLIGHT, uniforms.descriptorSetLayout, descriptorPool, logicalDevice, texture.imageView, uniforms.uniformBuffers, sampler);
+    return uniforms;
 }
 
 //{
