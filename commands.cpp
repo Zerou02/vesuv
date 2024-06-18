@@ -66,7 +66,12 @@ std::vector<VkCommandBuffer> createCommandBuffers(int size, VkCommandPool pool, 
     return buffers;
 }
 
-void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, GraphicsPipeline graphicsPipeline, SwapChain swapchain, VkRenderPass renderPass, Buffer vertexBuffer, Buffer indexBuffer, std::vector<VkDescriptorSet> descriptorSets, std::vector<uint16_t> quadIndices, int currentFrame, Buffer vertexBuffer2)
+int max(int a, int b)
+{
+    return a > b ? a : b;
+}
+
+void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, GraphicsPipeline graphicsPipeline, SwapChain swapchain, VkRenderPass renderPass, std::vector<Uniforms> uniforms, int currentFrame, std::vector<Buffer> vertexBuffer, std::vector<Buffer> indexBuffer)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -87,12 +92,41 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, Gra
     renderPassInfo.pClearValues = &clearColor;
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.pipeline);
-    VkBuffer vertexBuffers[] = {vertexBuffer.buffer};
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT16);
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.layout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
+    // VkBuffer vertexBuffers[] = {vertexBuffer.buffer};
+    // VkDeviceSize offsets[] = {0};
+    // vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+    // vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT16);
+    // vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.layout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+
+    /* vkCmdDraw(commandBuffer, 6, 1, 0, 0);
+        VkBuffer vertexBuffers2[] = {vertexBuffer2.buffer};
+        VkDeviceSize offsets2[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers2, offsets2);
+        vkCmdDraw(commandBuffer, 6, 1, 0, 0); */
+
+    for (int i = 0; i < vertexBuffer.size(); i++)
+    {
+
+        // auto drawIndexed = indexBuffer[i].bufferMemory == nullptr;
+        VkBuffer vertexBuffers[] = {vertexBuffer[i].buffer};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+        if (uniforms[i].amountSetElements != 0)
+        {
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.layout, 0, 1, &uniforms[i].descriptorSets[currentFrame], 0, nullptr);
+        }
+
+        if (indexBuffer[i].amountElements != 0)
+        {
+            vkCmdBindIndexBuffer(commandBuffer, indexBuffer[i].buffer, 0, VK_INDEX_TYPE_UINT16);
+            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indexBuffer[i].amountElements), 1, 0, 0, 0);
+        }
+        else
+        {
+            vkCmdDraw(commandBuffer, vertexBuffer[i].amountElements, 1, 0, 0);
+        }
+    }
     /*         VkViewport viewport{};
             viewport.x = 0.0f;
             viewport.y = 0.0f;
@@ -106,13 +140,6 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, Gra
             scissor.offset = {0, 0};
             scissor.extent = swapChainExtent;
             vkCmdSetScissor(commandBuffer, 0, 1, &scissor); */
-
-    //  vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(quadIndices.size()), 1, 0, 0, 0);
-    vkCmdDraw(commandBuffer, 6, 1, 0, 0);
-    VkBuffer vertexBuffers2[] = {vertexBuffer2.buffer};
-    VkDeviceSize offsets2[] = {0};
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers2, offsets2);
-    vkCmdDraw(commandBuffer, 6, 1, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)

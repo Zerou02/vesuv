@@ -220,9 +220,9 @@ GraphicsPipeline createGraphicsPipeline(std::string shaderName, VkDevice logical
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 1;
     if (descriptorLayout != nullptr)
     {
+        pipelineLayoutInfo.setLayoutCount = 1;
         pipelineLayoutInfo.pSetLayouts = &descriptorLayout;
     }
     VkPipelineLayout pipelineLayout;
@@ -230,6 +230,8 @@ GraphicsPipeline createGraphicsPipeline(std::string shaderName, VkDevice logical
     {
         throw std::runtime_error("failed to create pipeline layout");
     }
+
+    printf("D\n");
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

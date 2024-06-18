@@ -43,19 +43,12 @@ struct UniformBufferObject
     glm::mat4 proj;
 };
 
-struct GraphicsPipeline
-{
-    VkPipeline pipeline;
-    VkPipelineLayout layout;
-    VkShaderModule vertShader;
-    VkShaderModule fragShader;
-};
-
 struct Buffer
 {
     VkBuffer buffer;
     VkDeviceMemory bufferMemory;
     void *memMap;
+    int amountElements;
 };
 
 struct Texture
@@ -77,6 +70,16 @@ struct Uniforms
     VkDescriptorSetLayout descriptorSetLayout;
     std::vector<Buffer> uniformBuffers;
     std::vector<VkDescriptorSet> descriptorSets;
+    int amountSetElements;
+};
+
+struct GraphicsPipeline
+{
+    VkPipeline pipeline;
+    VkPipelineLayout layout;
+    VkShaderModule vertShader;
+    VkShaderModule fragShader;
+    std::vector<Uniforms> uniforms;
 };
 
 struct Window
